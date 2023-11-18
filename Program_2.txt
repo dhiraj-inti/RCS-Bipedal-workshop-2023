@@ -1,0 +1,55 @@
+#include <Otto.h>
+#include <LedControl.h>
+Otto Otto;
+#define LeftLeg 2 // left leg pin, servo[0]
+#define RightLeg 3 // right leg pin, servo[1]
+#define LeftFoot 4 // left foot pin, servo[2]
+#define RightFoot 5 // right foot pin, servo[3]
+#define Buzzer 13 // buzzer pin
+// Define the pins for the LED display
+const int DIN_PIN = 11; // DataIn
+const int CLK_PIN = 12; // CLK
+const int LOAD_PIN = 10; // Load
+LedControl lc = LedControl(DIN_PIN, CLK_PIN, LOAD_PIN, 1);
+const byte ASCII[][8] = {
+{B01111110, B10000001, B10000001, B10000001, B10000001, B10000001, B10000001,
+B01111110}, // 'M'
+{B00111100, B01000010, B10000001, B10011001, B10011001, B10000001, B01000010,
+B00111100}, // 'J'
+// Add more characters as needed
+};
+char displayCharacters[] = {'M', 'J'};
+int currentCharIndex = 0;
+void setup() {
+Otto.init(LeftLeg, RightLeg, LeftFoot, RightFoot, true, Buzzer);
+Otto.home();
+// Initialize the LED display
+lc.shutdown(0, false);
+lc.setIntensity(0, 8);
+lc.clearDisplay(0);
+}
+void displayCharOnLED(char ch) {
+byte character[8];
+for (int i = 0; i < 8; i++) {
+character[i] = pgm_read_byte_near(&(ASCII[ch - 32][i])); // Use ASCII lookup table
+} lc.setRow(0, 0, character[0]);
+lc.setRow(0, 1, character[1]);
+lc.setRow(0, 2, character[2]);
+lc.setRow(0, 3, character[3]);
+lc.setRow(0, 4, character[4]);
+lc.setRow(0, 5, character[5]);
+lc.setRow(0, 6, character[6]);
+lc.setRow(0, 7, character[7]);
+}
+void loop() {
+Otto.moonwalker(1, 1000, 25, 1);
+displayCharOnLED(displayCharacters[currentCharIndex]);
+delay(1000);
+lc.clearDisplay(0);
+Otto.moonwalker(1, 1000, 25, -1);
+displayCharOnLED(displayCharacters[currentCharIndex]);
+delay(1000);
+lc.clearDisplay(0);
+currentCharIndex = (currentCharIndex + 1) % (sizeof(displayCharacters) /
+sizeof(displayCharacters[0]));
+}

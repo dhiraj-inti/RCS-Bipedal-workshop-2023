@@ -1,0 +1,54 @@
+#include <Otto.h>
+#include <LedControl.h>
+Otto Otto;
+#define LeftLeg 2 // left leg pin, servo[0]
+#define RightLeg 3 // right leg pin, servo[1]
+#define LeftFoot 4 // left foot pin, servo[2]
+#define RightFoot 5 // right foot pin, servo[3]
+#define Buzzer 13 // buzzer pin
+// Define the pins for the LED display
+const int DIN_PIN = 11; // DataIn
+const int CLK_PIN = 12; // CLK
+const int LOAD_PIN = 10; // Load
+LedControl lc = LedControl(DIN_PIN, CLK_PIN, LOAD_PIN, 1);
+S long ultrasound_distance_simple() {
+long duration, distance;
+digitalWrite(8, LOW);
+delayMicroseconds(2);
+digitalWrite(8, HIGH);
+delayMicroseconds(10);
+digitalWrite(8, LOW);
+duration = pulseIn(9, HIGH);
+distance = duration / 58;
+return distance;
+}
+void setup() {
+Otto.init(LeftLeg, RightLeg, LeftFoot, RightFoot, true, Buzzer);
+Otto.home();
+pinMode(8, OUTPUT);
+pinMode(9, INPUT);
+// Initialize the LED display
+lc.shutdown(0, false);
+lc.setIntensity(0, 8);
+lc.clearDisplay(0);
+}
+void displayXOnLED() {
+lc.setRow(0, 0, B10000001); // X
+lc.setRow(0, 1, B01000010); // X
+lc.setRow(0, 2, B00100100); // X
+lc.setRow(0, 3, B00011000); // X
+lc.setRow(0, 4, B00011000); // X
+lc.setRow(0, 5, B00100100); // X
+lc.setRow(0, 6, B01000010); // X
+lc.setRow(0, 7, B10000001); // X
+}
+void loop() {
+if (ultrasound_distance_simple() < 15) {
+Otto.playGesture(OttoFretful);
+Otto.walk(0, 0, 0); // Stop the robot's movement
+displayXOnLED(); // Display 'X' on the LED matrix
+} else {
+Otto.walk(1, 1000, 1); // Move forward
+lc.clearDisplay(0); // Clear the LED display
+}
+}
